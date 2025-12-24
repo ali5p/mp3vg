@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv311/
+env/
+ENV/
+.venv311
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.mp3
+temp_*/
+mp3vocmaker_*/
+
+# ffmpeg portable (too large for git, users should download separately)
+ffmpeg/*
+!ffmpeg/.gitkeep
+
+# PyInstaller
+*.spec
+!mp3vocmaker.spec
