@@ -40,7 +40,7 @@ Thumbs.db
 # Project specific
 *.mp3
 temp_*/
-mp3vocmaker_*/
+mp3vg_*/
 
 # ffmpeg portable (too large for git, users should download separately)
 ffmpeg/*
@@ -48,4 +48,4 @@ ffmpeg/*
 
 # PyInstaller
 *.spec
-!mp3vocmaker.spec
+!mp3vg.spec

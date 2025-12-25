@@ -88,6 +88,10 @@ Users do **not** need to install ffmpeg separately.
 - The application depends on third-party TTS availability
 - Voice characteristics are determined automatically by the Google Text-to-Speech service and cannot be configured within the application.
 
+## Known issue (Windows): 
+
+Brief console flickering may occur during audio generation on some systems. This is a cosmetic issue and does not affect functionality.
+
 ---
 
 ## Common Errors & Troubleshooting
