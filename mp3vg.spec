@@ -53,6 +53,7 @@ exe = EXE(
     upx=False,  # Disabled for LGPL compliance
     upx_exclude=[],
     runtime_tmpdir=None,
+    onefile=True,
     console=False,  # GUI application - no console window
     disable_windowed_traceback=False,
     argv_emulation=False,

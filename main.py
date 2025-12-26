@@ -9,10 +9,10 @@ from typing import Optional
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QTextEdit, QLabel, QPushButton, QFileDialog, QDoubleSpinBox,
-    QMessageBox, QGroupBox, QFormLayout, QStatusBar
+    QMessageBox, QGroupBox, QFormLayout, QStatusBar, QSplashScreen
 )
-from PySide6.QtCore import Qt, QThread, Signal
-from PySide6.QtGui import QFont
+from PySide6.QtCore import Qt, QThread, Signal, QTimer
+from PySide6.QtGui import QFont, QPixmap, QPainter, QColor
 
 from tts_engine import TTSEngine, setup_ffmpeg_path
 from utils import parse_word_pairs, validate_pause_duration, check_ffmpeg_available, check_local_ffmpeg
@@ -348,15 +348,59 @@ class MainWindow(QMainWindow):
 
 
 def main():
-    """Main entry point."""
+    """Main entry point with splash screen."""
+
     app = QApplication(sys.argv)
-    
-    # Set application style
     app.setStyle("Fusion")
+
+    # Create splash pixmap
+    width, height = 400, 200
+    splash_pix = QPixmap(width, height)
+    splash_pix.fill(Qt.transparent)
     
-    window = MainWindow()
-    window.show()
-    
+    # Draw rounded semi-transparent background
+    painter = QPainter(splash_pix)
+    painter.setRenderHint(QPainter.Antialiasing)
+    painter.setBrush(QColor(30, 30, 30, 190))  # dark translucent
+    painter.setPen(Qt.NoPen)
+    painter.drawRoundedRect(0, 0, width, height, 20, 20)
+    painter.end()
+
+    splash = QSplashScreen(splash_pix)
+    splash.setWindowFlags(Qt.SplashScreen | Qt.FramelessWindowHint)
+    splash.setAttribute(Qt.WA_TranslucentBackground)
+    splash.setFont(QFont("Arial", 20, QFont.Bold))
+
+    # Animated loading text
+    base_text = "Loading"
+    dots_state = {"count": 0}
+
+    def update_loading_text():
+        dots_state["count"] = (dots_state["count"] + 1) % 4
+        text = base_text + "." * dots_state["count"]
+        splash.showMessage(
+            text,
+            Qt.AlignCenter,
+            Qt.white
+        )
+
+    loading_timer = QTimer()
+    loading_timer.timeout.connect(update_loading_text)
+    loading_timer.start(300)
+
+    update_loading_text()
+    splash.show()
+    app.processEvents()
+
+    # Simulate loading (or do real init)
+    def start_main_window():
+        loading_timer.stop()
+        app.main_window = MainWindow()
+        app.main_window.show()
+        splash.finish(app.main_window)
+
+    # The delay can be reduced if MainWindow loads quickly.
+    QTimer.singleShot(800, start_main_window)
     sys.exit(app.exec())
 
 
