@@ -3,6 +3,10 @@ Main application GUI for MP3 Vocabulary Generator.
 A desktop application for generating MP3 lessons from Czech-English word pairs.
 """
 
+# CRITICAL: Import subprocess patch FIRST to suppress console windows
+# This must be imported before any module that uses subprocess (including pydub)
+import subprocess_patch  # noqa: F401
+
 import sys
 from pathlib import Path
 from typing import Optional

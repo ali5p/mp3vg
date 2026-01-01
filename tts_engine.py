@@ -2,6 +2,10 @@
 Text-to-speech engine using gTTS and audio processing with pydub.
 """
 
+# CRITICAL: Import subprocess patch BEFORE any other imports that use subprocess
+# This ensures all subprocess calls (including those from pydub) are patched
+import subprocess_patch  # noqa: F401
+
 import os
 import shutil
 import tempfile
