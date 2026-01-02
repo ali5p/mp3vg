@@ -10,12 +10,28 @@ import os
 import shutil
 import tempfile
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Tuple, Optional, Callable
 from gtts import gTTS
 from pydub import AudioSegment
 from pydub.effects import normalize
 from utils import check_ffmpeg_available
+
+
+@dataclass
+class LanguagePairConfig:
+    """
+    Configuration for language pair sequencing and pause settings.
+    
+    Attributes:
+        sequence: List of language codes in playback order (e.g., ["cs", "en"] or ["en", "cs"])
+        pause_within_pair: Pause duration in seconds between items in the sequence
+        pause_between_pairs: Pause duration in seconds between word pairs
+    """
+    sequence: List[str]
+    pause_within_pair: float
+    pause_between_pairs: float
 
 
 def setup_ffmpeg_path():
@@ -141,18 +157,17 @@ class TTSEngine:
     def generate_lesson_audio(
         self,
         word_pairs: List[Tuple[str, str]],
-        pause_within_pair: float,
-        pause_between_pairs: float,
+        config: LanguagePairConfig,
         output_path: Path,
         progress_callback: Optional[Callable[[str], None]] = None
     ) -> Path:
         """
-        Generate complete MP3 lesson from word pairs.
+        Generate complete MP3 lesson from word pairs using configurable language sequence.
         
         Args:
-            word_pairs: List of (Czech_word, English_word) tuples
-            pause_within_pair: Pause duration in seconds between Czech and English
-            pause_between_pairs: Pause duration in seconds between pairs
+            word_pairs: List of (word1, word2) tuples, where word1 maps to sequence[0] 
+                       and word2 maps to sequence[1]
+            config: LanguagePairConfig containing sequence and pause settings
             output_path: Path where the final MP3 should be saved
             progress_callback: Optional callback function(status_message) for progress updates
             
@@ -162,6 +177,10 @@ class TTSEngine:
         Raises:
             Exception: If generation fails at any step
         """
+        # Validate sequence length
+        if len(config.sequence) != 2:
+            raise ValueError(f"Language sequence must contain exactly 2 language codes, got {len(config.sequence)}")
+        
         # Check for ffmpeg availability (must be local, next to executable)
         if getattr(sys, 'frozen', False):
             exe_path = Path(sys.executable)
@@ -191,28 +210,43 @@ class TTSEngine:
                 progress_callback(f"Starting generation of {total_pairs} word pairs...")
             
             # Convert pause durations to milliseconds
-            pause_within_ms = int(pause_within_pair * 1000)
-            pause_between_ms = int(pause_between_pairs * 1000)
+            pause_within_ms = int(config.pause_within_pair * 1000)
+            pause_between_ms = int(config.pause_between_pairs * 1000)
             
-            for idx, (czech_word, english_word) in enumerate(word_pairs, start=1):
+            # Map language codes to word_pair indices
+            # word_pairs are always (czech_word, english_word) from the UI
+            lang_to_word_index = {"cs": 0, "en": 1}
+            
+            for idx, word_pair in enumerate(word_pairs, start=1):
+                # Build display string for progress
+                word_display = " → ".join(word_pair)
                 if progress_callback:
-                    progress_callback(f"Processing pair {idx}/{total_pairs}: {czech_word} → {english_word}")
+                    progress_callback(f"Processing pair {idx}/{total_pairs}: {word_display}")
                 
-                # Generate Czech audio
-                czech_audio_path = temp_dir / f"czech_{idx}.mp3"
-                self.generate_speech(czech_word, "cs", czech_audio_path)
+                # Generate audio for each language in sequence order
+                pair_audio_segments = []
                 
-                # Ensure ffmpeg is set before loading audio
-                setup_ffmpeg_path()
-                czech_audio = AudioSegment.from_mp3(str(czech_audio_path))
+                for lang_idx, lang_code in enumerate(config.sequence):
+                    # Get the word corresponding to this language
+                    word = word_pair[lang_to_word_index[lang_code]]
+                    
+                    # Generate speech audio
+                    audio_path = temp_dir / f"lang_{lang_code}_{idx}.mp3"
+                    self.generate_speech(word, lang_code, audio_path)
+                    
+                    # Ensure ffmpeg is set before loading audio
+                    setup_ffmpeg_path()
+                    audio = AudioSegment.from_mp3(str(audio_path))
+                    pair_audio_segments.append(audio)
+                    
+                    # Add pause between items in sequence (except after the last one)
+                    if lang_idx < len(config.sequence) - 1:
+                        pair_audio_segments.append(self.create_silence(pause_within_ms))
                 
-                # Generate English audio
-                english_audio_path = temp_dir / f"english_{idx}.mp3"
-                self.generate_speech(english_word, "en", english_audio_path)
-                english_audio = AudioSegment.from_mp3(str(english_audio_path))
-                
-                # Combine Czech + pause + English
-                pair_audio = czech_audio + self.create_silence(pause_within_ms) + english_audio
+                # Combine all audio segments for this pair
+                pair_audio = pair_audio_segments[0]
+                for segment in pair_audio_segments[1:]:
+                    pair_audio += segment
                 
                 # Normalize audio for consistent volume
                 pair_audio = normalize(pair_audio)

@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QThread, Signal, QTimer
 from PySide6.QtGui import QFont, QPixmap, QPainter, QColor
 
-from tts_engine import TTSEngine, setup_ffmpeg_path
+from tts_engine import TTSEngine, setup_ffmpeg_path, LanguagePairConfig
 from utils import parse_word_pairs, validate_pause_duration, check_ffmpeg_available, check_local_ffmpeg
 
 
@@ -29,11 +29,10 @@ class GenerationThread(QThread):
     error = Signal(str)  # Error message
     progress = Signal(str)  # Progress message
     
-    def __init__(self, word_pairs, pause_within, pause_between, output_path):
+    def __init__(self, word_pairs, config, output_path):
         super().__init__()
         self.word_pairs = word_pairs
-        self.pause_within = pause_within
-        self.pause_between = pause_between
+        self.config = config
         self.output_path = output_path
     
     def run(self):
@@ -42,8 +41,7 @@ class GenerationThread(QThread):
             engine = TTSEngine()
             engine.generate_lesson_audio(
                 self.word_pairs,
-                self.pause_within,
-                self.pause_between,
+                self.config,
                 self.output_path,
                 progress_callback=lambda msg: self.progress.emit(msg)
             )
@@ -276,6 +274,14 @@ class MainWindow(QMainWindow):
         pause_within = validate_pause_duration(pause_within)
         pause_between = validate_pause_duration(pause_between)
         
+        # Create language pair configuration
+        # Default: Czech → English (can be changed to ["en", "cs"] for English → Czech)
+        config = LanguagePairConfig(
+            sequence=["cs", "en"],
+            pause_within_pair=pause_within,
+            pause_between_pairs=pause_between
+        )
+        
         # Disable UI during generation
         self.generate_button.setEnabled(False)
         self.browse_button.setEnabled(False)
@@ -289,8 +295,7 @@ class MainWindow(QMainWindow):
         # Create and start generation thread
         self.generation_thread = GenerationThread(
             word_pairs,
-            pause_within,
-            pause_between,
+            config,
             self.output_path
         )
         self.generation_thread.progress.connect(self.update_status)
