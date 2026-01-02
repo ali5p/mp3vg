@@ -13,12 +13,13 @@ from typing import Optional
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QTextEdit, QLabel, QPushButton, QFileDialog, QDoubleSpinBox,
-    QMessageBox, QGroupBox, QFormLayout, QStatusBar, QSplashScreen
+    QMessageBox, QGroupBox, QFormLayout, QStatusBar, QSplashScreen,
+    QRadioButton, QButtonGroup
 )
 from PySide6.QtCore import Qt, QThread, Signal, QTimer
 from PySide6.QtGui import QFont, QPixmap, QPainter, QColor
 
-from tts_engine import TTSEngine, setup_ffmpeg_path, LanguagePairConfig
+from tts_engine import TTSEngine, setup_ffmpeg_path, LanguagePairConfig, LANGUAGE_PRESETS
 from utils import parse_word_pairs, validate_pause_duration, check_ffmpeg_available, check_local_ffmpeg
 
 
@@ -121,7 +122,7 @@ class MainWindow(QMainWindow):
         self.pause_within_spinbox.setValue(1.1)
         self.pause_within_spinbox.setSuffix(" seconds")
         self.pause_within_spinbox.setDecimals(1)
-        pause_layout.addRow("Pause within pair (Czech → English):", self.pause_within_spinbox)
+        pause_layout.addRow("Pause within pair:", self.pause_within_spinbox)
         
         self.pause_between_spinbox = QDoubleSpinBox()
         self.pause_between_spinbox.setRange(0.0, 10.0)
@@ -133,6 +134,25 @@ class MainWindow(QMainWindow):
         
         pause_group.setLayout(pause_layout)
         main_layout.addWidget(pause_group)
+        
+        # Language order selection section
+        language_group = QGroupBox("Language Order")
+        language_layout = QVBoxLayout()
+        
+        # Create button group for mutually exclusive selection
+        self.language_button_group = QButtonGroup(self)
+        
+        self.radio_cz_en = QRadioButton("Czech → English")
+        self.radio_cz_en.setChecked(True)  # Default selection
+        self.language_button_group.addButton(self.radio_cz_en, 0)
+        language_layout.addWidget(self.radio_cz_en)
+        
+        self.radio_en_cz = QRadioButton("English → Czech")
+        self.language_button_group.addButton(self.radio_en_cz, 1)
+        language_layout.addWidget(self.radio_en_cz)
+        
+        language_group.setLayout(language_layout)
+        main_layout.addWidget(language_group)
         
         # Output file section
         output_group = QGroupBox("Output File")
@@ -274,10 +294,19 @@ class MainWindow(QMainWindow):
         pause_within = validate_pause_duration(pause_within)
         pause_between = validate_pause_duration(pause_between)
         
-        # Create language pair configuration
-        # Default: Czech → English (can be changed to ["en", "cs"] for English → Czech)
+        # Get selected language order preset key
+        if self.radio_cz_en.isChecked():
+            preset_key = "cz-en"
+        else:
+            preset_key = "en-cz"
+        
+        # Get preset configuration
+        base_config = LANGUAGE_PRESETS[preset_key]
+        
+        # Create language pair configuration with UI pause settings
+        # The preset provides the sequence, UI provides the pause durations
         config = LanguagePairConfig(
-            sequence=["cs", "en"],
+            sequence=base_config.sequence,
             pause_within_pair=pause_within,
             pause_between_pairs=pause_between
         )
@@ -288,6 +317,8 @@ class MainWindow(QMainWindow):
         self.text_input.setEnabled(False)
         self.pause_within_spinbox.setEnabled(False)
         self.pause_between_spinbox.setEnabled(False)
+        self.radio_cz_en.setEnabled(False)
+        self.radio_en_cz.setEnabled(False)
         
         # Update status
         self.status_bar.showMessage("Generating MP3... Please wait.")
@@ -334,6 +365,8 @@ class MainWindow(QMainWindow):
         self.text_input.setEnabled(True)
         self.pause_within_spinbox.setEnabled(True)
         self.pause_between_spinbox.setEnabled(True)
+        self.radio_cz_en.setEnabled(True)
+        self.radio_en_cz.setEnabled(True)
     
     def closeEvent(self, event):
         """Handle window close event."""

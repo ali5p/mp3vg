@@ -34,6 +34,23 @@ class LanguagePairConfig:
     pause_between_pairs: float
 
 
+# Language pair presets
+# These presets define the language sequence and default pause settings
+# To add a new preset, simply add a new entry here with a unique key
+LANGUAGE_PRESETS = {
+    "cz-en": LanguagePairConfig(
+        sequence=["cs", "en"],
+        pause_within_pair=1.1,
+        pause_between_pairs=1.7
+    ),
+    "en-cz": LanguagePairConfig(
+        sequence=["en", "cs"],
+        pause_within_pair=1.1,
+        pause_between_pairs=1.7
+    )
+}
+
+
 def setup_ffmpeg_path():
     """
     Setup ffmpeg path for pydub to use local portable version.
@@ -177,9 +194,14 @@ class TTSEngine:
         Raises:
             Exception: If generation fails at any step
         """
-        # Validate sequence length
-        if len(config.sequence) != 2:
-            raise ValueError(f"Language sequence must contain exactly 2 language codes, got {len(config.sequence)}")
+        # Map language codes to word_pair indices
+        # word_pairs are always (czech_word, english_word) from the UI
+        lang_to_word_index = {"cs": 0, "en": 1}
+        
+        # Validate that all languages in sequence are supported
+        for lang in config.sequence:
+            if lang not in lang_to_word_index:
+                raise ValueError(f"Unsupported language code: {lang}. Supported languages: {list(lang_to_word_index.keys())}")
         
         # Check for ffmpeg availability (must be local, next to executable)
         if getattr(sys, 'frozen', False):
@@ -212,10 +234,6 @@ class TTSEngine:
             # Convert pause durations to milliseconds
             pause_within_ms = int(config.pause_within_pair * 1000)
             pause_between_ms = int(config.pause_between_pairs * 1000)
-            
-            # Map language codes to word_pair indices
-            # word_pairs are always (czech_word, english_word) from the UI
-            lang_to_word_index = {"cs": 0, "en": 1}
             
             for idx, word_pair in enumerate(word_pairs, start=1):
                 # Build display string for progress
