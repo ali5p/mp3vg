@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QTextEdit, QLabel, QPushButton, QFileDialog, QDoubleSpinBox,
     QMessageBox, QGroupBox, QFormLayout, QStatusBar, QSplashScreen,
-    QRadioButton, QButtonGroup
+    QComboBox
 )
 from PySide6.QtCore import Qt, QThread, Signal, QTimer
 from PySide6.QtGui import QFont, QPixmap, QPainter, QColor
@@ -64,7 +64,7 @@ class MainWindow(QMainWindow):
     def init_ui(self):
         """Initialize the user interface."""
         self.setWindowTitle("MP3 Vocabulary Generator")
-        self.setMinimumSize(700, 600)
+        self.setMinimumSize(700, 500)
         
         # Central widget
         central_widget = QWidget()
@@ -84,7 +84,11 @@ class MainWindow(QMainWindow):
         title_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(title_label)
         
-        # Word pairs input section
+        # Two-column layout for main content
+        content_layout = QHBoxLayout()
+        content_layout.setSpacing(15)
+        
+        # Left column: Word pairs input (narrower, optimized for two words per line)
         pairs_group = QGroupBox("Word Pairs Input")
         pairs_layout = QVBoxLayout()
         
@@ -92,67 +96,75 @@ class MainWindow(QMainWindow):
         pairs_layout.addWidget(pairs_label)
         
         self.text_input = QTextEdit()
-        self.text_input.setPlaceholderText(
-            "Enter one pair per line: Czech,English\n\n"
-            "Example:\n"
-            "pes,dog\n"
-            "kočka,cat\n"
-            "dům,house\n"
-            "auto,car\n"
-            "kniha,book\n"
-            "stůl,table\n"
-            "židle,chair\n"
-            "okno,window\n"
-            "dveře,door\n"
-            "střecha,roof"
-        )
+        self.text_input.setPlaceholderText("Example: kniha,book")
+        
         self.text_input.setMinimumHeight(200)
         pairs_layout.addWidget(self.text_input)
         
         pairs_group.setLayout(pairs_layout)
-        main_layout.addWidget(pairs_group)
+        # Set narrower width for left column (word pairs are typically short)
+        pairs_group.setMaximumWidth(400)
+        content_layout.addWidget(pairs_group, stretch=1)
         
-        # Pause settings section
+        # Right column: Stacked vertically
+        right_column_layout = QVBoxLayout()
+        right_column_layout.setSpacing(15)
+        
+        # Pause settings section (more compact)
         pause_group = QGroupBox("Pause Settings")
         pause_layout = QFormLayout()
+        pause_layout.setSpacing(8)  # Reduce spacing for compact layout
         
         self.pause_within_spinbox = QDoubleSpinBox()
         self.pause_within_spinbox.setRange(0.0, 10.0)
         self.pause_within_spinbox.setSingleStep(0.1)
         self.pause_within_spinbox.setValue(1.1)
-        self.pause_within_spinbox.setSuffix(" seconds")
+        self.pause_within_spinbox.setSuffix(" s")
         self.pause_within_spinbox.setDecimals(1)
-        pause_layout.addRow("Pause within pair:", self.pause_within_spinbox)
+        self.pause_within_spinbox.setMaximumWidth(120)  # Compact width
+        pause_layout.addRow("Within pair:", self.pause_within_spinbox)
         
         self.pause_between_spinbox = QDoubleSpinBox()
         self.pause_between_spinbox.setRange(0.0, 10.0)
         self.pause_between_spinbox.setSingleStep(0.1)
         self.pause_between_spinbox.setValue(1.7)
-        self.pause_between_spinbox.setSuffix(" seconds")
+        self.pause_between_spinbox.setSuffix(" s")
         self.pause_between_spinbox.setDecimals(1)
-        pause_layout.addRow("Pause between pairs:", self.pause_between_spinbox)
+        self.pause_between_spinbox.setMaximumWidth(120)  # Compact width
+        pause_layout.addRow("Between pairs:", self.pause_between_spinbox)
         
         pause_group.setLayout(pause_layout)
-        main_layout.addWidget(pause_group)
+        right_column_layout.addWidget(pause_group)
         
-        # Language order selection section
+        # Language order selection section (dropdown)
         language_group = QGroupBox("Language Order")
         language_layout = QVBoxLayout()
         
-        # Create button group for mutually exclusive selection
-        self.language_button_group = QButtonGroup(self)
+        self.language_combo = QComboBox()
+        # Populate dropdown with preset keys from LANGUAGE_PRESETS
+        # UI only selects preset identifier - no language logic
+        for preset_key in sorted(LANGUAGE_PRESETS.keys()):
+            self.language_combo.addItem(preset_key, preset_key)
+        # Set default selection to "cz-en"
+        default_index = self.language_combo.findData("cz-en")
+        if default_index >= 0:
+            self.language_combo.setCurrentIndex(default_index)
         
-        self.radio_cz_en = QRadioButton("Czech → English")
-        self.radio_cz_en.setChecked(True)  # Default selection
-        self.language_button_group.addButton(self.radio_cz_en, 0)
-        language_layout.addWidget(self.radio_cz_en)
-        
-        self.radio_en_cz = QRadioButton("English → Czech")
-        self.language_button_group.addButton(self.radio_en_cz, 1)
-        language_layout.addWidget(self.radio_en_cz)
-        
+        language_layout.addWidget(self.language_combo)
         language_group.setLayout(language_layout)
-        main_layout.addWidget(language_group)
+        right_column_layout.addWidget(language_group)
+        
+        # Add stretch to push controls to top
+        right_column_layout.addStretch()
+        
+        # Create widget for right column
+        right_column_widget = QWidget()
+        right_column_widget.setLayout(right_column_layout)
+        right_column_widget.setMaximumWidth(300)  # Constrain right column width
+        content_layout.addWidget(right_column_widget, stretch=0)
+        
+        # Add content layout to main layout
+        main_layout.addLayout(content_layout)
         
         # Output file section
         output_group = QGroupBox("Output File")
@@ -294,11 +306,8 @@ class MainWindow(QMainWindow):
         pause_within = validate_pause_duration(pause_within)
         pause_between = validate_pause_duration(pause_between)
         
-        # Get selected language order preset key
-        if self.radio_cz_en.isChecked():
-            preset_key = "cz-en"
-        else:
-            preset_key = "en-cz"
+        # Get selected language order preset key from dropdown
+        preset_key = self.language_combo.currentData()
         
         # Get preset configuration
         base_config = LANGUAGE_PRESETS[preset_key]
@@ -317,8 +326,7 @@ class MainWindow(QMainWindow):
         self.text_input.setEnabled(False)
         self.pause_within_spinbox.setEnabled(False)
         self.pause_between_spinbox.setEnabled(False)
-        self.radio_cz_en.setEnabled(False)
-        self.radio_en_cz.setEnabled(False)
+        self.language_combo.setEnabled(False)
         
         # Update status
         self.status_bar.showMessage("Generating MP3... Please wait.")
@@ -365,8 +373,7 @@ class MainWindow(QMainWindow):
         self.text_input.setEnabled(True)
         self.pause_within_spinbox.setEnabled(True)
         self.pause_between_spinbox.setEnabled(True)
-        self.radio_cz_en.setEnabled(True)
-        self.radio_en_cz.setEnabled(True)
+        self.language_combo.setEnabled(True)
     
     def closeEvent(self, event):
         """Handle window close event."""
