@@ -15,15 +15,14 @@ def parse_word_pairs(text: str) -> List[Tuple[str, str]]:
     
     Expected format: One pair per line, separated by comma
     Example:
-        pes,dog
-        kočka,cat
-        dům,house
+        word1,word2
+        first,second
     
     Args:
         text: Raw text input from the text area
         
     Returns:
-        List of tuples (Czech_word, English_word)
+        List of tuples (first_word, second_word)
         
     Raises:
         ValueError: If format is invalid
@@ -47,17 +46,17 @@ def parse_word_pairs(text: str) -> List[Tuple[str, str]]:
         if len(parts) != 2:
             raise ValueError(
                 f"Invalid format on line {line_num}: '{line}'\n"
-                f"Expected format: Czech,English (one pair per line)"
+                f"Expected format: word1,word2 (one pair per line)"
             )
         
-        czech_word, english_word = parts
+        first_word, second_word = parts
         
-        if not czech_word:
-            raise ValueError(f"Czech word is missing on line {line_num}")
-        if not english_word:
-            raise ValueError(f"English word is missing on line {line_num}")
+        if not first_word:
+            raise ValueError(f"First word is missing on line {line_num}")
+        if not second_word:
+            raise ValueError(f"Second word is missing on line {line_num}")
         
-        pairs.append((czech_word, english_word))
+        pairs.append((first_word, second_word))
     
     if not pairs:
         raise ValueError("No valid word pairs found. Please enter at least one pair.")

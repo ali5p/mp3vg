@@ -124,7 +124,7 @@ class TTSEngine:
         
         Args:
             text: Text to convert to speech
-            language: Language code ('cs' for Czech, 'en' for English)
+            language: Language code (e.g., 'cs', 'en', 'ru', etc.)
             output_path: Path where the audio file should be saved
             
         Returns:
@@ -182,9 +182,10 @@ class TTSEngine:
         Generate complete MP3 lesson from word pairs using configurable language sequence.
         
         Args:
-            word_pairs: List of (word1, word2) tuples, where word1 maps to sequence[0] 
-                       and word2 maps to sequence[1]
-            config: LanguagePairConfig containing sequence and pause settings
+            word_pairs: List of (L1_word, L2_word) tuples
+                       - word_pairs[0] is always L1_word, uses profile.sequence[0] language
+                       - word_pairs[1] is always L2_word, uses profile.sequence[1] language
+            config: LanguagePairConfig containing sequence, pause settings, and role_order
             output_path: Path where the final MP3 should be saved
             progress_callback: Optional callback function(status_message) for progress updates
             
@@ -194,14 +195,29 @@ class TTSEngine:
         Raises:
             Exception: If generation fails at any step
         """
-        # Map language codes to word_pair indices
-        # word_pairs are always (czech_word, english_word) from the UI
-        lang_to_word_index = {"cs": 0, "en": 1}
+        # Validate sequence length
+        if len(config.sequence) != 2:
+            raise ValueError(f"Language sequence must contain exactly 2 language codes, got {len(config.sequence)}")
         
-        # Validate that all languages in sequence are supported
-        for lang in config.sequence:
-            if lang not in lang_to_word_index:
-                raise ValueError(f"Unsupported language code: {lang}. Supported languages: {list(lang_to_word_index.keys())}")
+        # Get role order (determines playback sequence)
+        # role_order is a list like [0, 1] for L1→L2 or [1, 0] for L2→L1
+        role_order = getattr(config, 'role_order', [0, 1])  # Default to L1→L2 if not set
+        
+        # Map roles to their language codes and word indices
+        # Words are invariantly bound to roles:
+        # - word_pairs[0] is always L1_word, uses L1 language
+        # - word_pairs[1] is always L2_word, uses L2 language
+        # Playback order only changes sequence, not word-to-language mapping
+        
+        role_to_word_index = {0: 0, 1: 1}  # L1 role -> word 0, L2 role -> word 1
+        
+        # Get original profile sequence to map roles to languages
+        # profile_sequence[0] is L1 language, profile_sequence[1] is L2 language
+        profile_sequence = getattr(config, 'profile_sequence', config.sequence)
+        role_to_language = {
+            0: profile_sequence[0],  # L1 role -> L1 language
+            1: profile_sequence[1]   # L2 role -> L2 language
+        }
         
         # Check for ffmpeg availability (must be local, next to executable)
         if getattr(sys, 'frozen', False):
@@ -241,12 +257,18 @@ class TTSEngine:
                 if progress_callback:
                     progress_callback(f"Processing pair {idx}/{total_pairs}: {word_display}")
                 
-                # Generate audio for each language in sequence order
+                # Generate audio for each role in playback order
+                # Words are bound to roles: word_pair[0] is L1_word, word_pair[1] is L2_word
+                # Each role has its own language that never changes
                 pair_audio_segments = []
                 
-                for lang_idx, lang_code in enumerate(config.sequence):
-                    # Get the word corresponding to this language
-                    word = word_pair[lang_to_word_index[lang_code]]
+                for playback_idx, role_idx in enumerate(role_order):
+                    # Get word index for this role (L1 role -> 0, L2 role -> 1)
+                    word_index = role_to_word_index[role_idx]
+                    # Get language code for this role
+                    lang_code = role_to_language[role_idx]
+                    # Get the word for this role
+                    word = word_pair[word_index]
                     
                     # Generate speech audio
                     audio_path = temp_dir / f"lang_{lang_code}_{idx}.mp3"
@@ -257,8 +279,8 @@ class TTSEngine:
                     audio = AudioSegment.from_mp3(str(audio_path))
                     pair_audio_segments.append(audio)
                     
-                    # Add pause between items in sequence (except after the last one)
-                    if lang_idx < len(config.sequence) - 1:
+                    # Add pause between roles in playback order (except after the last one)
+                    if playback_idx < len(role_order) - 1:
                         pair_audio_segments.append(self.create_silence(pause_within_ms))
                 
                 # Combine all audio segments for this pair

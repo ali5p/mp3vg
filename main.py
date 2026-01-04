@@ -1,6 +1,6 @@
 """
 Main application GUI for MP3 Vocabulary Generator.
-A desktop application for generating MP3 lessons from Czech-English word pairs.
+A desktop application for generating MP3 lessons from word pairs.
 """
 
 # CRITICAL: Import subprocess patch FIRST to suppress console windows
@@ -19,8 +19,9 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QThread, Signal, QTimer
 from PySide6.QtGui import QFont, QPixmap, QPainter, QColor
 
-from tts_engine import TTSEngine, setup_ffmpeg_path, LanguagePairConfig, LANGUAGE_PRESETS
+from tts_engine import TTSEngine, setup_ffmpeg_path, LanguagePairConfig
 from utils import parse_word_pairs, validate_pause_duration, check_ffmpeg_available, check_local_ffmpeg
+from language_profile import LANGUAGE_PROFILES, ACTIVE_PROFILE
 
 
 class GenerationThread(QThread):
@@ -92,11 +93,11 @@ class MainWindow(QMainWindow):
         pairs_group = QGroupBox("Word Pairs Input")
         pairs_layout = QVBoxLayout()
         
-        pairs_label = QLabel("Enter one pair per line: Czech,English")
+        pairs_label = QLabel("Enter one pair per line: L1, L2")
         pairs_layout.addWidget(pairs_label)
         
         self.text_input = QTextEdit()
-        self.text_input.setPlaceholderText("Example: kniha,book")
+        self.text_input.setPlaceholderText("word1, word2")
         
         self.text_input.setMinimumHeight(200)
         pairs_layout.addWidget(self.text_input)
@@ -136,23 +137,25 @@ class MainWindow(QMainWindow):
         pause_group.setLayout(pause_layout)
         right_column_layout.addWidget(pause_group)
         
-        # Language order selection section (dropdown)
-        language_group = QGroupBox("Language Order")
-        language_layout = QVBoxLayout()
+        # Playback order selection section (role-based, not language-specific)
+        order_group = QGroupBox("Playback Order")
+        order_layout = QVBoxLayout()
         
-        self.language_combo = QComboBox()
-        # Populate dropdown with preset keys from LANGUAGE_PRESETS
-        # UI only selects preset identifier - no language logic
-        for preset_key in sorted(LANGUAGE_PRESETS.keys()):
-            self.language_combo.addItem(preset_key, preset_key)
-        # Set default selection to "cz-en"
-        default_index = self.language_combo.findData("cz-en")
-        if default_index >= 0:
-            self.language_combo.setCurrentIndex(default_index)
+        self.order_combo = QComboBox()
+        # Role-based order selection - maps to indices in profile sequence
+        # UI only selects role order, not actual languages
+        ROLE_ORDERS = {
+            "L1 → L2": [0, 1],
+            "L2 → L1": [1, 0]
+        }
+        for order_key in sorted(ROLE_ORDERS.keys()):
+            self.order_combo.addItem(order_key, order_key)
+        # Set default selection to "L1 → L2"
+        self.order_combo.setCurrentIndex(0)
         
-        language_layout.addWidget(self.language_combo)
-        language_group.setLayout(language_layout)
-        right_column_layout.addWidget(language_group)
+        order_layout.addWidget(self.order_combo)
+        order_group.setLayout(order_layout)
+        right_column_layout.addWidget(order_group)
         
         # Add stretch to push controls to top
         right_column_layout.addStretch()
@@ -306,19 +309,35 @@ class MainWindow(QMainWindow):
         pause_within = validate_pause_duration(pause_within)
         pause_between = validate_pause_duration(pause_between)
         
-        # Get selected language order preset key from dropdown
-        preset_key = self.language_combo.currentData()
+        # Get base language configuration from active profile
+        profile = LANGUAGE_PROFILES[ACTIVE_PROFILE]
         
-        # Get preset configuration
-        base_config = LANGUAGE_PRESETS[preset_key]
+        # Get selected role order from UI (role-based, not language-specific)
+        # Role order determines playback sequence, not word-to-language mapping
+        ROLE_ORDERS = {
+            "L1 → L2": [0, 1],  # Play L1 role first, then L2 role
+            "L2 → L1": [1, 0]   # Play L2 role first, then L1 role
+        }
+        selected_order_key = self.order_combo.currentData()
+        role_order = ROLE_ORDERS[selected_order_key]
+        
+        # Build sequence from role order - each role maps to its language
+        # L1 role (index 0) -> profile.sequence[0], L2 role (index 1) -> profile.sequence[1]
+        # Words are bound to roles: word_pair[0] is L1_word, word_pair[1] is L2_word
+        sequence = [profile.sequence[role_idx] for role_idx in role_order]
         
         # Create language pair configuration with UI pause settings
-        # The preset provides the sequence, UI provides the pause durations
+        # sequence contains languages in playback order, but words remain bound to their roles
         config = LanguagePairConfig(
-            sequence=base_config.sequence,
+            sequence=sequence,
             pause_within_pair=pause_within,
             pause_between_pairs=pause_between
         )
+        
+        # Store role order and original profile sequence for tts_engine
+        # This allows tts_engine to correctly map roles to languages
+        config.role_order = role_order
+        config.profile_sequence = profile.sequence  # Original: [L1_lang, L2_lang]
         
         # Disable UI during generation
         self.generate_button.setEnabled(False)
@@ -326,7 +345,7 @@ class MainWindow(QMainWindow):
         self.text_input.setEnabled(False)
         self.pause_within_spinbox.setEnabled(False)
         self.pause_between_spinbox.setEnabled(False)
-        self.language_combo.setEnabled(False)
+        self.order_combo.setEnabled(False)
         
         # Update status
         self.status_bar.showMessage("Generating MP3... Please wait.")
@@ -373,7 +392,7 @@ class MainWindow(QMainWindow):
         self.text_input.setEnabled(True)
         self.pause_within_spinbox.setEnabled(True)
         self.pause_between_spinbox.setEnabled(True)
-        self.language_combo.setEnabled(True)
+        self.order_combo.setEnabled(True)
     
     def closeEvent(self, event):
         """Handle window close event."""
