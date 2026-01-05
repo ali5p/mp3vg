@@ -34,23 +34,6 @@ class LanguagePairConfig:
     pause_between_pairs: float
 
 
-# Language pair presets
-# These presets define the language sequence and default pause settings
-# To add a new preset, simply add a new entry here with a unique key
-LANGUAGE_PRESETS = {
-    "cz-en": LanguagePairConfig(
-        sequence=["cs", "en"],
-        pause_within_pair=1.1,
-        pause_between_pairs=1.7
-    ),
-    "en-cz": LanguagePairConfig(
-        sequence=["en", "cs"],
-        pause_within_pair=1.1,
-        pause_between_pairs=1.7
-    )
-}
-
-
 def setup_ffmpeg_path():
     """
     Setup ffmpeg path for pydub to use local portable version.
@@ -195,13 +178,25 @@ class TTSEngine:
         Raises:
             Exception: If generation fails at any step
         """
-        # Validate sequence length
-        if len(config.sequence) != 2:
-            raise ValueError(f"Language sequence must contain exactly 2 language codes, got {len(config.sequence)}")
-        
         # Get role order (determines playback sequence)
-        # role_order is a list like [0, 1] for L1→L2 or [1, 0] for L2→L1
+        # role_order is a list like [0, 1] for L1→L2, [1, 0] for L2→L1, or [1, 0, 1] for L2→L1→L2
         role_order = getattr(config, 'role_order', [0, 1])  # Default to L1→L2 if not set
+        
+        # Validate sequence length matches role order length
+        if len(config.sequence) != len(role_order):
+            raise ValueError(
+                f"Sequence length ({len(config.sequence)}) must match role order length ({len(role_order)})"
+            )
+        
+        # Validate that we have at least 2 roles (L1 and L2)
+        if len(role_order) < 2:
+            raise ValueError(f"Role order must contain at least 2 roles, got {len(role_order)}")
+        
+        # Validate that role indices are valid (0 for L1, 1 for L2)
+        valid_roles = {0, 1}
+        invalid_roles = set(role_order) - valid_roles
+        if invalid_roles:
+            raise ValueError(f"Invalid role indices in role_order: {invalid_roles}. Valid roles are 0 (L1) and 1 (L2)")
         
         # Map roles to their language codes and word indices
         # Words are invariantly bound to roles:

@@ -64,7 +64,7 @@ class MainWindow(QMainWindow):
     
     def init_ui(self):
         """Initialize the user interface."""
-        self.setWindowTitle("MP3 Vocabulary Generator")
+        self.setWindowTitle("MP3VG")
         self.setMinimumSize(700, 500)
         
         # Central widget
@@ -97,7 +97,7 @@ class MainWindow(QMainWindow):
         pairs_layout.addWidget(pairs_label)
         
         self.text_input = QTextEdit()
-        self.text_input.setPlaceholderText("word1, word2")
+        self.text_input.setPlaceholderText("L1, L2")
         
         self.text_input.setMinimumHeight(200)
         pairs_layout.addWidget(self.text_input)
@@ -146,7 +146,8 @@ class MainWindow(QMainWindow):
         # UI only selects role order, not actual languages
         ROLE_ORDERS = {
             "L1 → L2": [0, 1],
-            "L2 → L1": [1, 0]
+            "L2 → L1": [1, 0],
+            "L2 → L1 → L2": [1, 0, 1]
         }
         for order_key in sorted(ROLE_ORDERS.keys()):
             self.order_combo.addItem(order_key, order_key)
@@ -316,7 +317,8 @@ class MainWindow(QMainWindow):
         # Role order determines playback sequence, not word-to-language mapping
         ROLE_ORDERS = {
             "L1 → L2": [0, 1],  # Play L1 role first, then L2 role
-            "L2 → L1": [1, 0]   # Play L2 role first, then L1 role
+            "L2 → L1": [1, 0],   # Play L2 role first, then L1 role
+            "L2 → L1 → L2": [1, 0, 1]  # Play L2 role first, then L1 role, then L2 role again
         }
         selected_order_key = self.order_combo.currentData()
         role_order = ROLE_ORDERS[selected_order_key]
