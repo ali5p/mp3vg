@@ -17,6 +17,8 @@ LANGUAGE_PROFILES = {
     "pl-en": LanguagePairConfig(sequence=["pl", "en"], pause_within_pair=DEFAULT_PAUSE_WITHIN_PAIR, pause_between_pairs=DEFAULT_PAUSE_BETWEEN_PAIRS),
     "en-ru": LanguagePairConfig(sequence=["en", "ru"], pause_within_pair=DEFAULT_PAUSE_WITHIN_PAIR, pause_between_pairs=DEFAULT_PAUSE_BETWEEN_PAIRS), # English to Russian
     "ru-en": LanguagePairConfig(sequence=["ru", "en"], pause_within_pair=DEFAULT_PAUSE_WITHIN_PAIR, pause_between_pairs=DEFAULT_PAUSE_BETWEEN_PAIRS),
+    "en-ua": LanguagePairConfig(sequence=["en", "ru"], pause_within_pair=DEFAULT_PAUSE_WITHIN_PAIR, pause_between_pairs=DEFAULT_PAUSE_BETWEEN_PAIRS), # English to Ukrainian
+    "ua-en": LanguagePairConfig(sequence=["ru", "en"], pause_within_pair=DEFAULT_PAUSE_WITHIN_PAIR, pause_between_pairs=DEFAULT_PAUSE_BETWEEN_PAIRS),
     "en-cz": LanguagePairConfig(sequence=["en", "cz"], pause_within_pair=DEFAULT_PAUSE_WITHIN_PAIR, pause_between_pairs=DEFAULT_PAUSE_BETWEEN_PAIRS), # English to Czech
     "cz-en": LanguagePairConfig(sequence=["cz", "en"], pause_within_pair=DEFAULT_PAUSE_WITHIN_PAIR, pause_between_pairs=DEFAULT_PAUSE_BETWEEN_PAIRS),
     "en-sk": LanguagePairConfig(sequence=["en", "sk"], pause_within_pair=DEFAULT_PAUSE_WITHIN_PAIR, pause_between_pairs=DEFAULT_PAUSE_BETWEEN_PAIRS), # English to Slovak
@@ -29,4 +31,4 @@ LANGUAGE_PROFILES = {
     "ja-en": LanguagePairConfig(sequence=["ja", "en"], pause_within_pair=DEFAULT_PAUSE_WITHIN_PAIR, pause_between_pairs=DEFAULT_PAUSE_BETWEEN_PAIRS) 
 }    
 
-ACTIVE_PROFILE = "ru-en"
+ACTIVE_PROFILE = "en-cz"

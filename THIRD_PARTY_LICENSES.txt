@@ -1,0 +1,113 @@
+# THIRD-PARTY SOFTWARE LICENSES
+
+
+
+This product uses FFmpeg (https://ffmpeg.org/)
+
+licensed under the GNU Lesser General Public License (LGPL) only.
+
+No GPL-licensed components of FFmpeg are used.
+
+FFmpeg is not part of this software and is distributed separately.
+
+---
+
+## FFmpeg
+
+- Project: FFmpeg
+- License: GNU Lesser General Public License (LGPL) version 2.1 or later
+- Source: https://ffmpeg.org
+
+This product uses FFmpeg libraries under the LGPL license.
+
+FFmpeg is a trademark of Fabrice Bellard.
+
+In accordance with the LGPL, users may replace or modify the FFmpeg binaries
+
+used by this application.
+
+
+
+This product includes third-party open-source software components.
+
+The following licenses apply to those components.
+
+---
+
+## gTTS (Google Text-to-Speech)
+
+- Project: gTTS
+- License: MIT License
+- Copyright (c) 2014–present
+- Source: https://github.com/pndurette/gTTS
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+
+of this software and associated documentation files (the “Software”), to deal
+
+in the Software without restriction, including without limitation the rights
+
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+
+copies of the Software, subject to the conditions of the MIT License.
+
+---
+
+## pydub
+
+- Project: pydub
+- License: MIT License
+- Copyright (c) 2011–present
+- Source: https://github.com/jiaaro/pydub
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+
+of this software and associated documentation files (the “Software”), to deal
+
+in the Software without restriction, including without limitation the rights
+
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+
+copies of the Software, subject to the conditions of the MIT License.
+
+---
+
+## PyInstaller
+
+- Project: PyInstaller
+- License: GNU General Public License (GPL) version 2 with a special exception
+- Source: https://www.pyinstaller.org
+
+The PyInstaller license includes a special exception that allows bundling
+
+applications without imposing the GPL license on the resulting executable.
+
+---
+
+## Qt for Python (PySide6)
+
+- Project: PySide6 (Qt for Python)
+- License: GNU Lesser General Public License (LGPL) version 3
+- Source: https://www.qt.io/qt-for-python
+
+This application uses PySide6 under the LGPL license.
+
+No modifications have been made to the PySide6 source code.
+
+In accordance with the LGPL, users may replace or modify 
+
+the PySide6 libraries used by this application.
+
+---
+
+## Additional Notes
+
+This application is distributed as a standalone executable.
+
+No source code of third-party components is modified or redistributed beyond
+
+what is permitted by their respective licenses.
+
+---
+
+© 2026 Aliona Sîrf. All rights reserved. 
