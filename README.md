@@ -1,20 +1,24 @@
 # MP3 Vocabulary Generator
 
-**MP3 Vocabulary Generator** is a simple desktop application for generating MP3 audio files from vocabulary word pairs.
-
-It is designed for language learners who want to listen to word translations with natural pronunciation and adjustable pauses.
+**MP3VG** is a lightweight desktop application that converts vocabulary word pairs into spoken MP3 audio files.
+It is designed for language learners who want to practice vocabulary through listening with configurable pauses between translations.
 
 ---
 
 ## What This App Does
 
-- Converts word pairs into spoken audio
-- Supports **Czech → English** vocabulary
-- Generates **MP3 files** suitable for phones and audio players
-- Uses natural-sounding speech
+- Converts vocabulary **word or phrase pairs** into spoken audio
+- Generates natural-sounding speech using Google Text-to-Speech
+- Accepts simple text input: one pair per line, separated by a comma
+- Supports multiple playback orders:
+  - **L1 → L2**
+  - **L2 → L1**
+  - **L2 → L1 → L2** (repetition for reinforcement)
+- Creates a single **MP3 lesson file** from all pairs
 - Allows adjustable pauses:
-    - between words inside a pair
-    - between word pairs
+  - between items inside a pair
+  - between pairs
+- Normalizes audio volume for consistent playback
 
 ---
 
@@ -27,32 +31,60 @@ It is designed for language learners who want to listen to word translations wit
 
 ---
 
+## First-Time Setup (FFmpeg)
+
+Before using the application for the first time, install **FFmpeg**.
+
+1. Download FFmpeg from the official builds page:  
+   https://www.gyan.dev/ffmpeg/builds/#release-builds
+
+2. Download **ffmpeg-release-essentials.zip**
+
+3. Extract the archive into the **same folder** 
+   where `MP3_Vocabulary_Generator.exe` is located.
+
+4. Rename the extracted folder (for example 
+   `ffmpeg-8.0.1-essentials_build`) to: ffmpeg
+
+---
+
+## Folder Structure
+
+Your MP3VG folder should look like this:
+
+MP3VG/
+├── MP3_Vocabulary_Generator.exe
+└── ffmpeg/
+    └── bin/
+        └── ffmpeg.exe
+
+---
+
 ## How to Use
 
-1. Launch the application
+1. Launch the MP3VG app
 2. Enter word pairs into the text field
     - One pair per line
     - Words separated by a comma
 
-### Input Format
+## Input Format
 
-```
-Czech,English
-```
+Enter one pair per line using a comma as a separator:
 
-### Example
+L1 text, L2 text
 
-```
-pes,dog
-kočka,cat
-dům,house
-```
+Examples:
 
-1. Adjust pause settings:
+big cat, velká kočka
+house, dům
+it was a beautiful day, byl to krásný den
+
+3. Adjust pause settings:
     - Pause inside a word pair (default: 1.1 seconds)
     - Pause between word pairs (default: 1.7 seconds)
-2. Click **Generate**
-3. The app creates an MP3 file containing all word pairs
+4. Choose the location and filename for the generated MP3 file
+5. Click **Generate**
+6. The app creates an MP3 file containing all word pairs
 
 ---
 
@@ -70,13 +102,7 @@ dům,house
 - **GUI Framework**: PySide6 (Qt for Python)
 - **Text-to-Speech**: Google Text-to-Speech (gTTS)
 - **Audio Processing**: pydub
-- **Audio Engine**: ffmpeg (included in the application)
-
-**Important:**
-
-ffmpeg is bundled with the application.
-
-Users do **not** need to install ffmpeg separately.
+- **Audio Engine**: ffmpeg (external dependency; see installation instructions above)
 
 ---
 
@@ -88,10 +114,6 @@ Users do **not** need to install ffmpeg separately.
 - The application depends on third-party TTS availability
 - Voice characteristics are determined automatically by the Google Text-to-Speech service and cannot be configured within the application.
 
-## Known issue (Windows): 
-
-Brief console flickering may occur during audio generation on some systems. This is a cosmetic issue and does not affect functionality.
-
 ---
 
 ## Common Errors & Troubleshooting
@@ -99,7 +121,6 @@ Brief console flickering may occur during audio generation on some systems. This
 ### “Failed to generate speech”
 
 - Check your internet connection
-- Verify spelling of words
 - Try again after a short pause (rate limits may apply)
 
 ### Audio quality issues
@@ -112,24 +133,30 @@ Brief console flickering may occur during audio generation on some systems. This
 
 ## Third-Party Software
 
-This application uses third-party open-source software, including:
+This application uses the following third-party components:
 
-- Google Text-to-Speech (gTTS)
-- pydub
-- ffmpeg
+- **FFmpeg** (LGPL 2.1+, external binary) – https://ffmpeg.org
+- **gTTS** (MIT License) – https://github.com/pndurette/gTTS
+- **pydub** (MIT License) – https://github.com/jiaaro/pydub
+- **PyInstaller** (GPL v2 + special exception) – https://www.pyinstaller.org
+- **Qt for Python (PySide6)** (LGPL v3) – https://www.qt.io/qt-for-python
 
-Details can be found in `THIRD_PARTY_LICENSES.txt`.
+See `THIRD_PARTY_LICENSES.txt` for full license information.
 
 ---
 
-## License Notice
+## License
 
-This software is licensed for **personal use only**.
+This project is licensed under the GPL-3.0 License — see the LICENSE file for details.
 
-Redistribution, resale, or commercial use is prohibited unless explicitly permitted by the author.
+---
+
+## Project Status
+
+This project is a completed personal project developed for learning and portfolio purposes.
 
 ---
 
 ## Author
 
-**Aliona Sîrf**
+© 2026 Aliona Sîrf. All rights reserved. 
