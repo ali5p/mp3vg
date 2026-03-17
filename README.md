@@ -7,8 +7,6 @@ It is designed for language learners who want to practice vocabulary through lis
 
 ## What This App Does
 
-## Features
-
 - Converts vocabulary **word or phrase pairs** into spoken audio
 - Generates natural-sounding speech using Google Text-to-Speech
 - Accepts simple text input: one pair per line, separated by a comma
@@ -161,4 +159,4 @@ This project is a completed personal project developed for learning and portfoli
 
 ## Author
 
-© 2026 Aliona Sîrf. All rights reserved. 
+© 2026 Aliona Sîrf. All rights reserved.
