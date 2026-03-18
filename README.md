@@ -31,6 +31,50 @@ It is designed for language learners who want to practice vocabulary through lis
 
 ---
 
+## Development / How to Run
+
+### Requirements
+
+- Python 3.10+
+- FFmpeg (either local `ffmpeg/bin` next to the app, or available on PATH)
+- Internet connection (gTTS)
+
+### Setup
+
+```bash
+git clone https://github.com/ali5p/mp3vg.git
+cd mp3vg
+
+python -m venv venv
+
+# Activate environment (PowerShell)
+venv\Scripts\activate
+
+pip install -r requirements.txt
+```
+
+### Configuration (developer-time)
+Select the active language profile before running/building:
+
+# language_profile.py
+ACTIVE_PROFILE = "en-cs"
+
+Profiles define the (L1, L2) language binding; the UI “Playback Order” controls role playback (e.g., L1→L2, L2→L1, L2→L1→L2) without changing the language binding.
+
+### Run
+```bash
+python main.py
+```
+### Build Executable (Optional)
+```bash
+pyinstaller mp3vg.spec
+```
+Output:
+
+dist/MP3_Vocabulary_Generator/
+
+---
+
 ## First-Time Setup (FFmpeg)
 
 Before using the application for the first time, install **FFmpeg**.
