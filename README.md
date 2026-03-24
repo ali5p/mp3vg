@@ -203,4 +203,4 @@ This project is a completed personal project developed for learning and portfoli
 
 ## Author
 
-© 2026 Aliona Sîrf. All rights reserved.
+© 2026 Aliona Sîrf
