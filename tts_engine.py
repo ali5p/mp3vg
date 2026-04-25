@@ -16,7 +16,6 @@ from typing import List, Tuple, Optional, Callable
 from gtts import gTTS
 from pydub import AudioSegment
 from pydub.effects import normalize
-from utils import check_ffmpeg_available
 
 
 @dataclass
@@ -67,7 +66,6 @@ def setup_ffmpeg_path():
             AudioSegment.ffprobe = str(ffprobe_exe_abs)
         
         # Also set the environment variable for subprocess calls
-        import os
         os.environ['PATH'] = str(ffmpeg_dir.resolve()) + os.pathsep + os.environ.get('PATH', '')
         
         return True

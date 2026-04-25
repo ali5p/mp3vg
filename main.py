@@ -270,7 +270,7 @@ class MainWindow(QMainWindow):
         
         # Try to setup local ffmpeg
         local_ffmpeg_setup = setup_ffmpeg_path()
-        local_available, local_path = check_local_ffmpeg()
+        local_available, _ = check_local_ffmpeg()
         
         if not local_available and not local_ffmpeg_setup:
             # FFmpeg is required

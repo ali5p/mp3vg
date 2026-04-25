@@ -2,7 +2,6 @@
 Utility functions for parsing and validating word pairs input.
 """
 
-import re
 import shutil
 import sys
 from pathlib import Path
