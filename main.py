@@ -1,6 +1,6 @@
 """
 Main application GUI for MP3 Vocabulary Generator.
-A desktop application for generating MP3 lessons from word pairs.
+A desktop application for generating MP3 lessons from bilingual text input.
 """
 
 # CRITICAL: Import subprocess patch FIRST to suppress console windows
@@ -66,7 +66,7 @@ class MainWindow(QMainWindow):
     def init_ui(self):
         """Initialize the user interface."""
         self.setWindowTitle("MP3VG")
-        self.setMinimumSize(700, 500)
+        self.setMinimumSize(700, 480)
         
         # Central widget
         central_widget = QWidget()
@@ -77,21 +77,12 @@ class MainWindow(QMainWindow):
         main_layout.setSpacing(15)
         main_layout.setContentsMargins(20, 20, 20, 20)
         
-        # Title
-        title_label = QLabel("MP3 Vocabulary Generator")
-        title_font = QFont()
-        title_font.setPointSize(16)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
-        title_label.setAlignment(Qt.AlignCenter)
-        main_layout.addWidget(title_label)
-        
         # Two-column layout for main content
         content_layout = QHBoxLayout()
         content_layout.setSpacing(15)
         
-        # Left column: Word pairs input (narrower, optimized for two words per line)
-        pairs_group = QGroupBox("Word Pairs Input")
+        # Left column: Input (narrower, optimized for two words per line)
+        pairs_group = QGroupBox("Input")
         pairs_layout = QVBoxLayout()
         
         pairs_label = QLabel("Enter one pair per line: L1, L2")
@@ -159,7 +150,7 @@ class MainWindow(QMainWindow):
         right_column_layout.addWidget(order_group)
         
         # L1 / L2: gTTS codes from language_catalog (no default until user picks both)
-        profile_group = QGroupBox("Languages (gTTS)")
+        profile_group = QGroupBox("Languages")
         profile_layout = QHBoxLayout()
         profile_layout.setSpacing(8)
         l1_label = QLabel("L1")
@@ -229,7 +220,7 @@ class MainWindow(QMainWindow):
     
     def browse_output_file(self):
         """Open file dialog to select output MP3 file location."""
-        default_path = Path.home() / "Desktop" / "vocabulary_lesson.mp3"
+        default_path = Path.home() / "Desktop" / "lesson.mp3"
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             "Save MP3 File",
@@ -277,12 +268,11 @@ class MainWindow(QMainWindow):
         
         # FFmpeg found
         if local_path:
-            self.status_bar.showMessage(f"Using local ffmpeg: {local_path.parent}")
+            self.status_bar.showMessage("Using local ffmpeg")
         else:
             self.status_bar.showMessage("Using local ffmpeg (configured)")
     
     def generate_mp3(self):
-        """Generate MP3 lesson from word pairs."""
         # Determine base path
         if getattr(sys, 'frozen', False):
             exe_path = Path(sys.executable)

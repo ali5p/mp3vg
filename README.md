@@ -1,7 +1,9 @@
 # MP3 Vocabulary Generator
 
-**MP3VG** is a lightweight desktop application that converts vocabulary word pairs into spoken MP3 audio files.
+**MP3VG** is a lightweight desktop application that converts bilingual text input into spoken MP3 audio files.
 It is designed for language learners who want to practice vocabulary through listening with configurable pauses between translations.
+
+<img src="docs/screenshots/ui/MP3VG_UI_window.png" width="600"/>
 
 ---
 
@@ -36,7 +38,7 @@ It is designed for language learners who want to practice vocabulary through lis
 ### Requirements
 
 - Python 3.10+
-- FFmpeg (either local `ffmpeg/bin` next to the app, or available on PATH)
+- **FFmpeg** in the **portable** layout (`ffmpeg/bin/ffmpeg.exe` under the project directory or next to the built executable). See [First-Time Setup (FFmpeg)](#first-time-setup-ffmpeg).
 - Internet connection (gTTS)
 
 ### Setup
