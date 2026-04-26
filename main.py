@@ -120,7 +120,7 @@ class MainWindow(QMainWindow):
         self.pause_within_spinbox = QDoubleSpinBox()
         self.pause_within_spinbox.setRange(0.0, 10.0)
         self.pause_within_spinbox.setSingleStep(0.1)
-        self.pause_within_spinbox.setValue(1.1)
+        self.pause_within_spinbox.setValue(0.8)
         self.pause_within_spinbox.setSuffix(" s")
         self.pause_within_spinbox.setDecimals(1)
         self.pause_within_spinbox.setMaximumWidth(120)  # Compact width
@@ -129,7 +129,7 @@ class MainWindow(QMainWindow):
         self.pause_between_spinbox = QDoubleSpinBox()
         self.pause_between_spinbox.setRange(0.0, 10.0)
         self.pause_between_spinbox.setSingleStep(0.1)
-        self.pause_between_spinbox.setValue(1.7)
+        self.pause_between_spinbox.setValue(1.4)
         self.pause_between_spinbox.setSuffix(" s")
         self.pause_between_spinbox.setDecimals(1)
         self.pause_between_spinbox.setMaximumWidth(120)  # Compact width
@@ -147,7 +147,6 @@ class MainWindow(QMainWindow):
         # UI only selects role order, not actual languages
         ROLE_ORDERS = {
             "L1 → L2": [0, 1],
-            "L2 → L1": [1, 0],
             "L2 → L1 → L2": [1, 0, 1]
         }
         for order_key in sorted(ROLE_ORDERS.keys()):
@@ -349,7 +348,6 @@ class MainWindow(QMainWindow):
         # Role order determines playback sequence, not word-to-language mapping
         ROLE_ORDERS = {
             "L1 → L2": [0, 1],  # Play L1 role first, then L2 role
-            "L2 → L1": [1, 0],   # Play L2 role first, then L1 role
             "L2 → L1 → L2": [1, 0, 1]  # Play L2 role first, then L1 role, then L2 role again
         }
         selected_order_key = self.order_combo.currentData()

@@ -177,7 +177,7 @@ class TTSEngine:
             Exception: If generation fails at any step
         """
         # Get role order (determines playback sequence)
-        # role_order is a list like [0, 1] for L1→L2, [1, 0] for L2→L1, or [1, 0, 1] for L2→L1→L2
+        # role_order is a list like [0, 1] for L1→L2, or [1, 0, 1] for L2→L1→L2
         role_order = getattr(config, 'role_order', [0, 1])  # Default to L1→L2 if not set
         
         # Validate sequence length matches role order length

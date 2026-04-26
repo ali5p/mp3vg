@@ -12,12 +12,12 @@ It is designed for language learners who want to practice vocabulary through lis
 - Accepts simple text input: one pair per line, separated by a comma
 - Supports multiple playback orders:
   - **L1 → L2**
-  - **L2 → L1**
   - **L2 → L1 → L2** (repetition for reinforcement)
 - Creates a single **MP3 lesson file** from all pairs
 - Allows adjustable pauses:
   - between items inside a pair
   - between pairs
+- **L1** and **L2** gTTS language codes are chosen separately (see `language_catalog.py`)
 - Normalizes audio volume for consistent playback
 
 ---
@@ -53,13 +53,11 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Configuration (developer-time)
-Select the active language profile before running/building:
+### Language list
 
-# language_profile.py
-ACTIVE_PROFILE = "en-cs"
+Supported gTTS codes live in **`language_catalog.py`** (`SUPPORTED_LANGUAGE_CODES`). Add or remove short codes there to change the L1/L2 dropdowns. The UI shows codes only (e.g. `en`, `cs`).
 
-Profiles define the (L1, L2) language binding; the UI “Playback Order” controls role playback (e.g., L1→L2, L2→L1, L2→L1→L2) without changing the language binding.
+**L1 / L2** define the word-column → language binding (first column = L1, second = L2). **Playback Order** controls role playback (e.g. L1→L2, L2→L1→L2).
 
 ### Run
 ```bash
@@ -107,7 +105,8 @@ MP3VG/
 ## How to Use
 
 1. Launch the MP3VG app
-2. Enter word pairs into the text field
+2. Choose **L1** and **L2** language codes (both are required)
+3. Enter word pairs into the text field
     - One pair per line
     - Words separated by a comma
 
@@ -123,12 +122,12 @@ big cat, velká kočka
 house, dům
 it was a beautiful day, byl to krásný den
 
-3. Adjust pause settings:
-    - Pause inside a word pair (default: 1.1 seconds)
-    - Pause between word pairs (default: 1.7 seconds)
-4. Choose the location and filename for the generated MP3 file
-5. Click **Generate**
-6. The app creates an MP3 file containing all word pairs
+4. Adjust pause settings:
+    - Pause inside a word pair (default: 0.8 seconds)
+    - Pause between word pairs (default: 1.4 seconds)
+5. Choose the location and filename for the generated MP3 file
+6. Click **Generate**
+7. The app creates an MP3 file containing all word pairs
 
 ---
 

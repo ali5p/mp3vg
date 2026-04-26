@@ -86,7 +86,7 @@ def format_time(seconds: float) -> str:
         seconds: Duration in seconds
         
     Returns:
-        Formatted string (e.g., "1.1s", "1.7s")
+        Formatted string (e.g., "0.8s", "1.4s")
     """
     return f"{seconds:.1f}s"
 
