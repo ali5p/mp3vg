@@ -9,6 +9,7 @@ import subprocess_patch  # noqa: F401
 
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Optional
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -21,7 +22,7 @@ from PySide6.QtGui import QFont, QPixmap, QPainter, QColor
 
 from tts_engine import TTSEngine, setup_ffmpeg_path, LanguagePairConfig
 from utils import parse_word_pairs, validate_pause_duration, check_ffmpeg_available, check_local_ffmpeg
-from language_profile import LANGUAGE_PROFILES, ACTIVE_PROFILE
+from language_catalog import SUPPORTED_LANGUAGE_CODES
 
 
 class GenerationThread(QThread):
@@ -158,18 +159,25 @@ class MainWindow(QMainWindow):
         order_group.setLayout(order_layout)
         right_column_layout.addWidget(order_group)
         
-        # Language profile (L1 / L2) — from language_profile.LANGUAGE_PROFILES
-        profile_group = QGroupBox("Language profile")
-        profile_layout = QVBoxLayout()
-        self.profile_combo = QComboBox()
-        for key in sorted(LANGUAGE_PROFILES.keys()):
-            cfg = LANGUAGE_PROFILES[key]
-            label = f"{cfg.sequence[0]} → {cfg.sequence[1]}"
-            self.profile_combo.addItem(label, key)
-        default_idx = self.profile_combo.findData(ACTIVE_PROFILE)
-        if default_idx >= 0:
-            self.profile_combo.setCurrentIndex(default_idx)
-        profile_layout.addWidget(self.profile_combo)
+        # L1 / L2: gTTS codes from language_catalog (no default until user picks both)
+        profile_group = QGroupBox("Languages (gTTS)")
+        profile_layout = QHBoxLayout()
+        profile_layout.setSpacing(8)
+        l1_label = QLabel("L1")
+        self.l1_combo = QComboBox()
+        l2_label = QLabel("L2")
+        self.l2_combo = QComboBox()
+        for code in SUPPORTED_LANGUAGE_CODES:
+            self.l1_combo.addItem(code, code)
+            self.l2_combo.addItem(code, code)
+        self.l1_combo.setCurrentIndex(-1)
+        self.l2_combo.setCurrentIndex(-1)
+        for combo in (self.l1_combo, self.l2_combo):
+            combo.setMaximumWidth(72)
+        profile_layout.addWidget(l1_label)
+        profile_layout.addWidget(self.l1_combo)
+        profile_layout.addWidget(l2_label)
+        profile_layout.addWidget(self.l2_combo)
         profile_group.setLayout(profile_layout)
         right_column_layout.addWidget(profile_group)
         
@@ -179,7 +187,7 @@ class MainWindow(QMainWindow):
         # Create widget for right column
         right_column_widget = QWidget()
         right_column_widget.setLayout(right_column_layout)
-        right_column_widget.setMaximumWidth(300)  # Constrain right column width
+        right_column_widget.setMaximumWidth(340)  # L1/L2 row + pause / order
         content_layout.addWidget(right_column_widget, stretch=0)
         
         # Add content layout to main layout
@@ -325,16 +333,17 @@ class MainWindow(QMainWindow):
         pause_within = validate_pause_duration(pause_within)
         pause_between = validate_pause_duration(pause_between)
         
-        # Get base language configuration from selected profile
-        profile_key = self.profile_combo.currentData()
-        if profile_key is None or profile_key not in LANGUAGE_PROFILES:
+        # Base (L1, L2) language codes — user must select both
+        l1_code = self._language_code_from_combo(self.l1_combo)
+        l2_code = self._language_code_from_combo(self.l2_combo)
+        if not l1_code or not l2_code:
             QMessageBox.warning(
                 self,
-                "Invalid profile",
-                "Please select a valid language profile."
+                "Languages required",
+                "Please select both L1 and L2 languages."
             )
             return
-        profile = LANGUAGE_PROFILES[profile_key]
+        profile = SimpleNamespace(sequence=[l1_code, l2_code])
         
         # Get selected role order from UI (role-based, not language-specific)
         # Role order determines playback sequence, not word-to-language mapping
@@ -371,7 +380,8 @@ class MainWindow(QMainWindow):
         self.pause_within_spinbox.setEnabled(False)
         self.pause_between_spinbox.setEnabled(False)
         self.order_combo.setEnabled(False)
-        self.profile_combo.setEnabled(False)
+        self.l1_combo.setEnabled(False)
+        self.l2_combo.setEnabled(False)
         
         # Update status
         self.status_bar.showMessage("Generating MP3... Please wait.")
@@ -419,7 +429,14 @@ class MainWindow(QMainWindow):
         self.pause_within_spinbox.setEnabled(True)
         self.pause_between_spinbox.setEnabled(True)
         self.order_combo.setEnabled(True)
-        self.profile_combo.setEnabled(True)
+        self.l1_combo.setEnabled(True)
+        self.l2_combo.setEnabled(True)
+    
+    def _language_code_from_combo(self, combo: QComboBox) -> Optional[str]:
+        if combo.currentIndex() < 0:
+            return None
+        data = combo.currentData()
+        return str(data) if data is not None else None
     
     def closeEvent(self, event):
         """Handle window close event."""
